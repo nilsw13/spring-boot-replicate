@@ -33,7 +33,7 @@ public class Training {
     private Map<String, String> input;
     private String logs;
     private Map<String , Double> metrics;
-    private Map<String, String> output;
+    private Map<String, Object> output;
     @JsonProperty("started_at")
     private String startedAt;
     private String status;
@@ -84,7 +84,7 @@ public class Training {
         return metrics;
     }
 
-    public Map<String, String> getOutput() {
+    public Map<String, Object> getOutput() {
         return output;
     }
 
@@ -136,7 +136,7 @@ public class Training {
         this.metrics = metrics;
     }
 
-    public void setOutput(Map<String, String> output) {
+    public void setOutput(Map<String, Object> output) {
         this.output = output;
     }
 

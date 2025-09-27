@@ -1,5 +1,6 @@
 package com.nilsw13.springboot.replicate.unitaire;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nilsw13.springboot.replicate.responsetype.training.Training;
 import com.nilsw13.springboot.replicate.api.ReplicateRestClient;
 import com.nilsw13.springboot.replicate.impl.TrainingBuilderServiceImpl;
@@ -12,9 +13,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Tag("unit-test")
  class TrainingServiceImplTest {
@@ -47,6 +50,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
         assertThat(train.getVersion()).isEqualTo("test version");
         assertThat(train.getMetrics()).isEqualTo(metrics);
+        assertThat(train.getOutput());
+
         assertThat(train.getLogs()).isEqualTo("tets logs");
         assertThat(train.getInput()).isEqualTo(input);
         assertThat(train.getError()).isEqualTo("null");
@@ -54,6 +59,53 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
         assertThat(train.getCompletedAt()).isEqualTo("12/13/13");
 
     }
+
+    @Test
+    public void testOutputWithNonStringValues() throws Exception {
+        String json = """
+            {
+              "id": "abc123",
+              "model": "my-model",
+              "version": "1.0",
+              "status": "completed",
+              "created_at": "2023-01-01T00:00:00Z",
+              "started_at": "2023-01-01T00:01:00Z",
+              "completed_at": "2023-01-01T00:02:00Z",
+              "input": {},
+              "output": {
+                "validation_images": ["img1.png", "img2.png"],
+                "version": "",
+                "weights": ""
+              },
+              "metrics": {},
+              "urls": {},
+              "logs": null,
+              "error": null
+            }
+            """;
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // Désérialisation
+        Training training = objectMapper.readValue(json, Training.class);
+
+        // Vérifications
+        assertNotNull(training.getOutput());
+        assertTrue(training.getOutput().get("validation_images") instanceof List);
+        assertEquals("",
+                training.getOutput().get("version"));
+        assertEquals("",
+                training.getOutput().get("weights"));
+
+        List<?> validationImages = (List<?>) training.getOutput().get("validation_images");
+        assertEquals(2, validationImages.size());
+        assertEquals("img1.png", validationImages.get(0));
+        assertEquals("img2.png", validationImages.get(1));
+    }
+
+
+
+
 
     private static class TestableTrainingBuilder extends TrainingBuilderServiceImpl {
         // Variables pour capturer les arguments
